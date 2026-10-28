@@ -1,0 +1,1 @@
+Synthetic branch-protection test.
