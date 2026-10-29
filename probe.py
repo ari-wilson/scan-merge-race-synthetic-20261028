@@ -57,13 +57,9 @@ def run():
     STAGE = 'token_endpoint'
     url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
     parsed = urllib.parse.urlsplit(url)
-    if parsed.scheme != 'https' or parsed.hostname not in ('pipelines.actions.githubusercontent.com', 'token.actions.githubusercontent.com'):
-        if parsed.scheme == 'https' and parsed.hostname == 'vstoken.actions.githubusercontent.com':
-            STAGE = 'token_endpoint_vstoken'
-        elif (parsed.hostname or '').endswith('.actions.githubusercontent.com'):
-            STAGE = 'token_endpoint_githubusercontent'
-        else:
-            STAGE = 'token_endpoint_other'
+    if (parsed.scheme != 'https' or parsed.username is not None or parsed.password is not None
+            or parsed.port not in (None, 443) or parsed.fragment
+            or not re.fullmatch(r'[a-z0-9-]+\.actions\.githubusercontent\.com', parsed.hostname or '')):
         raise ValueError('token endpoint')
     STAGE = 'token_http'
     token_url = url + ('&' if parsed.query else '?') + urllib.parse.urlencode({'audience': audience})
