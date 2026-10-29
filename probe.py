@@ -54,10 +54,18 @@ def run():
         raise ValueError('check identity')
     STAGE = 'token_request'
     audience = 'synthetic-oidc-' + secrets.token_urlsafe(32)
+    STAGE = 'token_endpoint'
     url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
     parsed = urllib.parse.urlsplit(url)
     if parsed.scheme != 'https' or parsed.hostname not in ('pipelines.actions.githubusercontent.com', 'token.actions.githubusercontent.com'):
+        if parsed.scheme == 'https' and parsed.hostname == 'vstoken.actions.githubusercontent.com':
+            STAGE = 'token_endpoint_vstoken'
+        elif (parsed.hostname or '').endswith('.actions.githubusercontent.com'):
+            STAGE = 'token_endpoint_githubusercontent'
+        else:
+            STAGE = 'token_endpoint_other'
         raise ValueError('token endpoint')
+    STAGE = 'token_http'
     token_url = url + ('&' if parsed.query else '?') + urllib.parse.urlencode({'audience': audience})
     request_token = os.environ.pop('ACTIONS_ID_TOKEN_REQUEST_TOKEN')
     token = get_json(token_url, {'Authorization': 'bearer ' + request_token})['value']
